@@ -1,0 +1,15 @@
+{
+  "name": "vim-cheatsheet",
+  "description": "Claude Code vim-mode keybinding cheatsheet as a side pane",
+  "owner": {
+    "name": "An Van",
+    "url": "https://github.com/anvanvan"
+  },
+  "plugins": [
+    {
+      "name": "vim-cheatsheet",
+      "source": "./",
+      "description": "/vim-keys opens a side pane listing every Claude Code vim-mode keybinding"
+    }
+  ]
+}

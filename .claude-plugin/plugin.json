@@ -1,0 +1,11 @@
+{
+  "name": "vim-cheatsheet",
+  "version": "0.1.0",
+  "description": "/vim-keys opens a side pane listing every Claude Code vim-mode keybinding",
+  "author": { "name": "An Van", "url": "https://github.com/anvanvan" },
+  "homepage": "https://github.com/anvanvan/vim-cheatsheet",
+  "repository": "https://github.com/anvanvan/vim-cheatsheet",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "keywords": ["vim", "keybindings", "cheatsheet", "reference"]
+}
