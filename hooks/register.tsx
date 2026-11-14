@@ -65,7 +65,11 @@ export const register: Register = on => {
 
   on('command.run', { command: 'vim-keys' }, async $ => {
     await $.ui.open({ id: PANE, title: TITLE })
-    return { text: 'Vim-Cheatsheet geöffnet.' }
+    const mode = await $.settings.read({ key: 'editorMode' })
+    if (mode === 'vim') return { text: 'Vim-Cheatsheet geöffnet.' }
+    return {
+      text: 'Vim-Cheatsheet geöffnet. Vim-Mode ist aus: /config → Editor mode → vim',
+    }
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
