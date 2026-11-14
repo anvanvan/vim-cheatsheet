@@ -1,0 +1,32 @@
+# cycle.toml — Soll-Stand für ~/dev/vim-cheatsheet, Erst-Setup.
+# Claude-Code-Plugin (ein Hooks-Modul in TypeScript), Tests über `claude plugin test`, kein Monorepo.
+
+[project]
+vcs = "git"                                    # ← git rev-parse --show-toplevel
+
+[test]
+full = "claude plugin validate --profile directory --strict . && claude plugin test ."   # ← hooks/register.test.ts:1 ("claude-code/testing") + .claude-plugin/plugin.json (Plugin-Manifest, das validate prüft)
+budget = 120                                   # ← echter Lauf 2026-11-14: real 2.34 s, Puffer für Last im Gate
+
+[land]
+merge-base = "main"                            # ← git ls-remote --symref origin HEAD (refs/heads/main)
+
+[worktree]
+setup = []                                     # ← kein Build-Schritt: Plugin lädt Quelltext direkt (hooks/hooks.json: modules ./register.tsx)
+copy = []                                      # ← .gitignore (keine .env, keine lokale Config)
+protected-branches = []                        # ← git branch -a: nur main
+
+[hooks]
+secret-scan = "betterleaks"                    # ← secret-scan-global-hook: hook.secret-scan (pre-push) current
+
+[commit]
+trailers = ["Co-Authored-By"]                  # ← Nutzer 2026-11-14
+format = '^[a-z]+\([a-z-]+\): '                # ← git log --format=%s (3 von 3 in type(scope):-Form)
+
+[scripts]
+language = "ruby"                              # ← Vorgabe ruby; kein Gegenbeleg (keine Skripte, kein CI, origin eigenes Konto anvanvan)
+
+[gate]
+test = "full"                                  # ← [test] full, kein Runner mit Dateiliste
+main_test = "full"                             # ← [test] full + Nutzer 2026-11-14
+revert = "auto"                                # ← Nutzer 2026-11-14 (eigenes Projekt, Konto anvanvan, kein Kunde)

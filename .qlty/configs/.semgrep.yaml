@@ -1,0 +1,61 @@
+# Project-owned semgrep rules for this repo — qlty's semgrep driver invokes
+# `semgrep --config .semgrep.yaml` and hard-errors (exit 7, "invalid
+# configuration file found") without this file, so it is what makes the lane
+# project-configured instead of default-configured.
+#
+# Scope on purpose: this file IS the whole semgrep configuration that ships.
+# There is no second, registry-driven semgrep lane anywhere in this repo — the
+# registry packs (p/default, p/security-audit, p/secrets) are deliberately NOT
+# wired in. Measured 2026-09-19 in the deployed shape (a
+# `[plugins.definitions.semgrep.drivers.lint] script = ...` override in
+# qlty.toml does put `--config p/...` into the real lane, so this was a choice,
+# not a limitation): on the A5 fixture the packs added exactly 2 findings, both
+# verbatim duplicates of bandit's B310 and B602; over this repo's 276 files
+# they add 2 unique findings against 2 re-openings of sites already triaged
+# with `# nosec`. The price is a hard network dependency -- with a registry
+# pack in the config and no route to semgrep.dev, semgrep dies before writing
+# any SARIF, so ALL semgrep coverage (these house rules included) drops out of
+# the run. Without the packs the identical run is fully offline-capable.
+# Measurement + rationale:
+# cycle 2026-09-07-sdlc-setup, verify/a5-review-werkzeuge.md (untracked, git history)
+rules:
+  - id: house-bare-git-stash
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include: ["*.sh", "*.bash", "*.zsh"]
+    message: >-
+      Bare `git stash` / `git stash pop`: the stash stack is shared with every
+      other git worktree and every parallel session, so a pop can take another
+      session's work. Use `git stash push -u -m "<tag>"` plus
+      `git stash apply <sha>`, or set the work aside with a WIP commit.
+    # Trailing whitespace is [ \t]* on purpose, never \s*: \s swallows line
+    # breaks, so a terminator many lines below could close the match. The
+    # line break is covered by `$` instead, with an explicit optional \r so a
+    # CRLF file keeps matching (verified 2026-09-19 on a CRLF probe).
+    pattern-regex: '(?<!\w)git[ \t]+stash([ \t]+(pop|save))?[ \t]*(\||;|&&|\)|\r?$)'
+
+  - id: house-tmux-without-own-server
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include: ["*.sh", "*.bash", "*.zsh", "*.py"]
+    message: >-
+      `tmux` invoked without `-L <socket>`: scripts and tests must run on their
+      own tmux server so they can never touch the user's live session. Use
+      `tmux -L <name> ...` and tear it down with `tmux -L <name> kill-server`.
+    # Walks the server-agnostic option tokens first (-u, -2, -f <path>, ...)
+    # so `tmux -u new-session` is caught too; the loop can never step over
+    # -L/-S, which keeps those two the exemption they are. `--help`/`-V`
+    # never reach the subcommand slot because that slot refuses a leading -.
+    pattern-regex: '(?<!\w)tmux(?:[ \t]+-(?!L|S)[a-zA-Z0-9]+(?:[ \t]+[^\s-][^\s]*)?)*[ \t]+(?!-)[a-zA-Z]'
+
+  - id: house-gnu-sed-i-on-bsd
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include: ["*.sh", "*.bash", "*.zsh"]
+    message: >-
+      `sed -i` without an explicit backup suffix is GNU syntax and fails on this
+      machine's BSD sed. Write `sed -i ''` (BSD) explicitly.
+    pattern-regex: "(?<!\\w)sed\\s+(-[a-zA-Z]*\\s+)*-i\\s+(?!''|\"\")[-a-zA-Z0-9$'\"/]"
