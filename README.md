@@ -13,7 +13,9 @@ Inside a session, use `/plugin install vim-cheatsheet --marketplace anvanvan/vim
 ## Use
 
 1. Turn on vim mode: `/config`, then Editor mode, then `vim`.
-2. Type `/vim-keys`. The pane opens beside the chat.
+2. Type `/vim-keys`. The pane opens beside the chat. When vim mode is off, the command also tells you how to turn it on.
+
+The plugin works in Claude Code: the terminal, the desktop app's Code tab and the VS Code extension. Chat on claude.ai and in the Claude apps ignores it, so `/vim-keys` does not appear there.
 
 ## Source
 

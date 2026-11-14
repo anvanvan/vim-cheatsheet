@@ -2,6 +2,7 @@ import type { Register } from 'claude-code'
 
 const PANE = 'vim-keys'
 const TITLE = 'Vim-Mode Keys'
+const ENABLE = '/config → Editor mode → vim'
 
 type Section = { title: string; rows: [string, string][] }
 
@@ -64,8 +65,12 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'vim-keys' }, async $ => {
-    await $.ui.open({ id: PANE, title: TITLE })
-    return { text: 'Vim-Cheatsheet geöffnet.' }
+    const [, mode] = await Promise.all([
+      $.ui.open({ id: PANE, title: TITLE }),
+      $.settings.read({ key: 'editorMode' }),
+    ])
+    const hint = mode === 'vim' ? '' : ` Vim-Mode ist aus: ${ENABLE}`
+    return { text: `Vim-Cheatsheet geöffnet.${hint}` }
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
@@ -83,7 +88,7 @@ export const register: Register = on => {
             ))}
           </Box>
         ))}
-        <Text dimColor>Aktivieren: /config → Editor mode → vim</Text>
+        <Text dimColor>Aktivieren: {ENABLE}</Text>
       </Box>
     )
   })
