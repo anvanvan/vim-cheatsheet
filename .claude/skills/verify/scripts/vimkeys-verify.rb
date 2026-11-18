@@ -74,6 +74,9 @@ module VimkeysVerify
   rescue Failure => e
     puts e.message
     1
+  rescue JSON::ParserError => e
+    puts "error: unreadable env file: #{e.message.lines.first.strip}\nhint: vimkeys-verify.rb down --name #{name}, then up"
+    1
   end
 
   def fail!(msg, hint) = raise(Failure, "error: #{msg}\nhint: #{hint}")
