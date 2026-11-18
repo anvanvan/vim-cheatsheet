@@ -16,3 +16,7 @@ Relayed by session #758 on 2026-11-18 ("go 1,2,3,4,5"). This cycle covers vim-ch
 
 ## Proofs
 - Author run: all four cards driven live, snaps under `verify/author/` (local only).
+- Fresh agent r1 (Sonnet 5.5, sha 002dac2) on vim-mode-hint: 3/3 pass, 4 GAP lines (80-row output, ambiguous "second reply", unconfirmed filter). Fixed in 8bfb39e. Evidence `verify/smoke/vim-mode-hint/`.
+- Fresh agent r2 (Sonnet 5.5, sha 8bfb39e) on vim-mode-hint: 3/3 pass, GAP: 0. Evidence `verify/smoke/vim-mode-hint-r2/`.
+- /simplify: snap from one capture, --dry-run only on down, case dispatch; helper rechecked live (up, doctor, snap, down, usage errors exit 2).
+- Skipped from /simplify: Kit::CLI and Kit::Sh reuse (a one-file verify helper in a foreign repo stays free of the ~/.claude load path), testenv status --json for doctor (it reports isolation, not the tui or the source head), parallel subprocesses (milliseconds).
