@@ -16,7 +16,6 @@ module VimkeysVerify
   ENV_BASE = "/private/tmp/cc-testenv"
   COLS = 160
   ROWS = 80
-  VERBS = %w[up doctor snap down].freeze
   USAGE = <<~TXT
     usage: vimkeys-verify.rb <verb> [--name NAME] [args]
 
@@ -48,18 +47,24 @@ module VimkeysVerify
 
   def run(argv)
     name = "vimkeys-verify"
-    @dry = false
+    dry = false
     parser = OptionParser.new do |o|
       o.on("--name NAME") { |v| name = v }
-      o.on("--dry-run") { @dry = true }
+      o.on("--dry-run") { dry = true }
       o.on("-h", "--help") { puts USAGE; return 0 }
     end
     args = parser.parse(argv)
     verb = args.shift
-    raise Usage, "missing verb" unless verb
-    raise Usage, "unknown verb #{verb} (#{VERBS.join(", ")})" unless VERBS.include?(verb)
+    raise Usage, "--dry-run belongs to down only" if dry && verb != "down"
 
-    send(verb, name, args)
+    case verb
+    when "up" then up(name)
+    when "doctor" then doctor(name)
+    when "snap" then snap(name, args.first || raise(Usage, "snap needs <stem>"))
+    when "down" then down(name, dry:)
+    when nil then raise Usage, "missing verb"
+    else raise Usage, "unknown verb #{verb} (up, doctor, snap, down)"
+    end
   rescue OptionParser::ParseError, Usage => e
     puts "error: #{e.message}\nhint: vimkeys-verify.rb --help"
     2
@@ -68,6 +73,8 @@ module VimkeysVerify
     1
   end
 
+  def fail!(msg, hint) = raise(Failure, "error: #{msg}\nhint: #{hint}")
+
   def sh(*cmd)
     out, st = Open3.capture2e(*cmd)
     [out, st.success?]
@@ -75,26 +82,27 @@ module VimkeysVerify
 
   def must(*cmd, hint:)
     out, ok = sh(*cmd)
-    raise Failure, "error: #{cmd.first(3).join(" ")} failed\n#{out.strip}\nhint: #{hint}" unless ok
+    fail!("#{cmd.first(3).join(" ")} failed\n#{out.strip}", hint) unless ok
 
     out
   end
 
   def root
     out, ok = sh("git", "rev-parse", "--show-toplevel")
-    raise Failure, "error: not inside a git checkout\nhint: cd into the vim-cheatsheet checkout or cycle worktree" unless ok
+    fail!("not inside a git checkout", "cd into the vim-cheatsheet checkout or cycle worktree") unless ok
 
     out.strip
   end
 
   def env_root(name) = File.join(ENV_BASE, name)
+  def tmux_socket(name) = "cc-testenv-#{name}"
 
-  def up(name, _args)
+  def up(name)
     src = root
     must(TESTENV, "up", name, "--from", src, hint: "testenv.rb down #{name}, then up again")
     started = must(TESTENV, "tui", name, "start", "--", "--plugin-dir", env_root(name),
                    hint: "testenv.rb tui #{name} read shows the screen; down + up resets")
-    must("tmux", "-L", "cc-testenv-#{name}", "resize-window", "-t", "claude", "-x", COLS.to_s, "-y", ROWS.to_s,
+    must("tmux", "-L", tmux_socket(name), "resize-window", "-t", "claude", "-x", COLS.to_s, "-y", ROWS.to_s,
          hint: "the tui is not running: vimkeys-verify.rb down, then up")
     puts started.lines.first(6).join
     puts "plugin: #{env_root(name)} (copy of #{src})"
@@ -102,7 +110,7 @@ module VimkeysVerify
     0
   end
 
-  def doctor(name, _args)
+  def doctor(name)
     problems = []
     meta_path = File.join(env_root(name), ".testenv", "meta.json")
     unless File.exist?(meta_path)
@@ -139,21 +147,18 @@ module VimkeysVerify
     1
   end
 
-  def snap(name, args)
-    stem = args.first or raise Usage, "snap needs <stem>"
+  def snap(name, stem)
     FileUtils.mkdir_p(File.dirname(File.expand_path(stem)))
-    screen = must(TESTENV, "tui", name, "read", hint: "vimkeys-verify.rb doctor --name #{name}")
-    File.write("#{stem}.txt", screen)
-    _, png = sh(SHOOT, "-L", "cc-testenv-#{name}", "claude", "#{stem}.shot")
-    FileUtils.mv("#{stem}.shot.png", "#{stem}.png") if png && File.exist?("#{stem}.shot.png")
-    FileUtils.rm_f(["#{stem}.shot.txt", "#{stem}.shot.raw.txt"])
-    puts "snap: #{stem}.txt#{png ? " #{stem}.png" : " (png render failed, text kept)"}"
+    out, ok = sh(SHOOT, "-L", tmux_socket(name), "claude", stem)
+    FileUtils.rm_f("#{stem}.raw.txt")
+    fail!("no screen captured\n#{out.strip}", "vimkeys-verify.rb doctor --name #{name}") unless File.exist?("#{stem}.txt")
+    puts "snap: #{stem}.txt#{ok ? " #{stem}.png" : " (png render failed, text kept)"}"
     0
   end
 
-  def down(name, _args)
-    if @dry
-      puts "would remove: tmux server cc-testenv-#{name}, env #{env_root(name)}#{File.exist?(env_root(name)) ? "" : " (absent)"}"
+  def down(name, dry:)
+    if dry
+      puts "would remove: tmux server #{tmux_socket(name)}, env #{env_root(name)}#{File.exist?(env_root(name)) ? "" : " (absent)"}"
       return 0
     end
     out = must(TESTENV, "down", name, hint: "run it from outside the env's own session")
