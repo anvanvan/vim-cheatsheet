@@ -21,4 +21,5 @@ Relayed by session #758 on 2026-11-18 ("go 1,2,3,4,5"). This cycle covers vim-ch
 - /simplify: snap from one capture, --dry-run only on down, case dispatch; helper rechecked live (up, doctor, snap, down, usage errors exit 2).
 - Fix 4da8469: snap text was ANSI- and OSC-laden (grep for handles missed); now plain.
 - Fresh agent r3 (Sonnet 5.5, sha 4da8469) on vim-mode-hint: 3/3 pass, GAP: 0. Evidence `verify/smoke/vim-mode-hint-r3/`.
+- bugbot on a9b0f3f: 3 findings (stale snap passes as proof, US-ASCII crash without locale, doctor backtrace on a removed source). All three rerun red, fixed, probes green.
 - Skipped from /simplify: Kit::CLI and Kit::Sh reuse (a one-file verify helper in a foreign repo stays free of the ~/.claude load path), testenv status --json for doctor (it reports isolation, not the tui or the source head), parallel subprocesses (milliseconds).
