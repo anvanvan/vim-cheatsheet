@@ -10,6 +10,8 @@ require "open3"
 require "optparse"
 require "fileutils"
 
+Encoding.default_external = Encoding::UTF_8 # a launchd or env -i session has no locale; the screen is UTF-8
+
 module VimkeysVerify
   TESTENV = File.expand_path("~/.claude/bin/testenv.rb")
   SHOOT = File.expand_path("~/.claude/bin/shoot-proof.rb")
@@ -123,7 +125,8 @@ module VimkeysVerify
     head, = sh("git", "-C", src, "rev-parse", "HEAD")
     dirty, = sh("git", "-C", src, "status", "--porcelain")
     puts "env: #{env_root(name)} from #{meta["from"]} @ #{meta["head"][0, 7]}"
-    problems << "env built from #{meta["from"]}, you stand in #{src}" unless File.realpath(meta["from"]) == File.realpath(src)
+    from_ok = File.exist?(meta["from"]) && File.realpath(meta["from"]) == File.realpath(src)
+    problems << "env built from #{meta["from"]}, you stand in #{src}" unless from_ok
     problems << "env head #{meta["head"][0, 7]} != checkout HEAD #{head.strip[0, 7]}" unless meta["head"] == head.strip
     puts "note: checkout has uncommitted changes; the env holds them as of #{meta["created_at"]}" unless dirty.strip.empty?
     manifest = File.join(env_root(name), ".claude-plugin", "plugin.json")
@@ -150,6 +153,7 @@ module VimkeysVerify
 
   def snap(name, stem)
     FileUtils.mkdir_p(File.dirname(File.expand_path(stem)))
+    FileUtils.rm_f(["#{stem}.txt", "#{stem}.png"]) # a failed capture must not leave an older screen as proof
     out, ok = sh(SHOOT, "-L", tmux_socket(name), "claude", stem)
     FileUtils.rm_f("#{stem}.raw.txt")
     fail!("no screen captured\n#{out.strip}", "vimkeys-verify.rb doctor --name #{name}") unless File.exist?("#{stem}.txt")
