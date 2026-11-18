@@ -30,6 +30,7 @@ Run `$V doctor` and require `doctor: ok`. It reads the env without touching it: 
 - **Type without Enter.** `$T tui vimkeys-verify send --no-enter '<text>'` leaves the text in the prompt, which opens the slash menu for text starting with `/`.
 - **Press keys.** `$T tui vimkeys-verify keys <key>...` sends tmux key names: `Escape`, `Enter`, `Down`, `Up`, `Left`, `Right`, `C-u`. Lower-case letters sent through `send --no-enter` reach the prompt as vim commands in NORMAL mode, after `Escape`.
 - **Read.** `$T tui vimkeys-verify read` prints the screen. The pane sits right of a `│` column, at about column 88; the chat and the prompt are left of it.
+- **Keep the output short.** `send --wait`, `keys` and `read` print all 80 rows. To check a handle, append `| grep -E '<handle>'` to `read`, or grep the `.txt` of a snap. A step that waits a fixed time instead of `--wait` gets a `read` before the next key, so you act on what the screen shows.
 
 Handles to wait for: the reply line `vim-cheatsheet: Vim-Cheatsheet geöffnet.`, the pane section titles `Modus`, `Navigation`, `Bearbeiten`, `Textobjekte (mit d c y)`, `VISUAL`, `Nicht unterstützt`, the pane footer `Aktivieren: /config → Editor mode → vim`, and the mode badge `-- INSERT --` in the status line below the prompt. NORMAL mode shows no badge: the status line then starts with `⏵⏵`.
 

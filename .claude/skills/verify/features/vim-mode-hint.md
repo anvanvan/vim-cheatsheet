@@ -21,11 +21,11 @@ Preconditions:
 
 - **Hint while off.** Run `$T tui vimkeys-verify send '/vim-keys' --wait 'Vim-Mode ist aus'`, then `$V snap <dir>/01-hint`. The reply reads `vim-cheatsheet: Vim-Cheatsheet geöffnet. Vim-Mode ist aus: /config → Editor mode → vim`, wrapped over two lines, and the pane is open.
 - **Open the settings.** Run `$T tui vimkeys-verify send '/config' --wait 'Search settings'`. The `Settings` tab shows with a search field.
-- **Find the setting.** Run `$T tui vimkeys-verify send --no-enter 'Editor'`, wait one second. The list shrinks to `Editor mode   normal` and `Show last response in external editor`.
+- **Find the setting.** Run `$T tui vimkeys-verify send --no-enter 'Editor'`, wait one second, then `$T tui vimkeys-verify read | grep -E 'Editor|external editor'`. The list shrinks to the two rows `Editor mode   normal` and `Show last response in external editor`, and `❯` marks `Editor mode`.
 - **Switch to vim.** Run `$T tui vimkeys-verify keys Down`, then `$T tui vimkeys-verify keys Enter`, then `$V snap <dir>/02-config-vim`. The row reads `Editor mode   ‹ vim ›`.
 - **Close the settings.** Run `$T tui vimkeys-verify keys Escape`, wait one second, then `$V snap <dir>/03-insert`. The status line under the prompt starts with `-- INSERT --`.
 - **Read back.** Run `$V doctor` and keep its output as `<dir>/04-doctor.txt`. It prints `editorMode: vim`.
-- **No hint while on.** Run `$T tui vimkeys-verify send '/vim-keys' --wait 'geöffnet\.\s+│'`, then `$V snap <dir>/05-no-hint`. The second reply line ends at `geöffnet.` and the pane's `│` column follows it on the same row.
+- **No hint while on.** Run `$T tui vimkeys-verify send '/vim-keys' --wait 'geöffnet\.\s+│'`, then `$V snap <dir>/05-no-hint`. The newest reply, the last `⎿` line on screen, ends at `geöffnet.` and the pane's `│` column follows it on the same row. The older reply above it still carries the hint.
 
 ## Gotchas
 
