@@ -16,6 +16,7 @@ module VimkeysVerify
   ENV_BASE = "/private/tmp/cc-testenv"
   COLS = 160
   ROWS = 80
+  ANSI = /\e\][^\a\e]*(?:\a|\e\\)|\e\[[0-9;?]*[ -\/]*[@-~]/ # OSC (links) and CSI (colours)
   USAGE = <<~TXT
     usage: vimkeys-verify.rb <verb> [--name NAME] [args]
 
@@ -152,6 +153,7 @@ module VimkeysVerify
     out, ok = sh(SHOOT, "-L", tmux_socket(name), "claude", stem)
     FileUtils.rm_f("#{stem}.raw.txt")
     fail!("no screen captured\n#{out.strip}", "vimkeys-verify.rb doctor --name #{name}") unless File.exist?("#{stem}.txt")
+    File.write("#{stem}.txt", File.read("#{stem}.txt").gsub(ANSI, ""))
     puts "snap: #{stem}.txt#{ok ? " #{stem}.png" : " (png render failed, text kept)"}"
     0
   end
