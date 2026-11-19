@@ -30,4 +30,4 @@ language = "ruby"                              # ← Vorgabe ruby; kein Gegenbel
 test = "full"                                  # ← [test] full, kein Runner mit Dateiliste
 main_test = "full"                             # ← [test] full + Nutzer 2026-11-14
 revert = "auto"                                # ← Nutzer 2026-11-14 (eigenes Projekt, Konto anvanvan, kein Kunde)
-verify = "advise"                              # ← Nutzer 2026-11-18 (AskUserQuestion "Verifier": alle drei einschalten, advise); Verify-Skill seit b27dc0b
+verify = "block"                               # ← Nutzer 2026-11-19 (AskUserQuestion "Verifier": "Ja, auf block stellen"); Verify-Skill seit b27dc0b
